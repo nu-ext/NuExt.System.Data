@@ -2,6 +2,11 @@
 
 `NuExt.System.Data` provides a set of extensions for data classes to simplify and enhance database operations. This package is designed to streamline common tasks in database interaction, making it easier to manage and manipulate data within .NET applications.
 
+[![NuGet](https://img.shields.io/nuget/v/NuExt.System.Data.svg)](https://www.nuget.org/packages/NuExt.System.Data)
+[![Build](https://github.com/nu-ext/NuExt.System.Data/actions/workflows/ci.yml/badge.svg)](https://github.com/nu-ext/NuExt.System.Data/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/nu-ext/NuExt.System.Data?label=license)](https://github.com/nu-ext/NuExt.System.Data/blob/main/LICENSE)
+[![Downloads](https://img.shields.io/nuget/dt/NuExt.System.Data.svg)](https://www.nuget.org/packages/NuExt.System.Data)
+
 ### Commonly Used Types
 
 - **`System.Data.DalBase`**: Base class for Data Access Layer (DAL) implementations.
@@ -29,7 +34,7 @@ Or through the Visual Studio package manager:
 
 For comprehensive examples of how to use the package, see samples in the following repository:
 
-- [NuExt.System.Data.SQLite](https://github.com/IvanGit/NuExt.System.Data.SQLite)
+- [NuExt.System.Data.SQLite](https://github.com/nu-ext/NuExt.System.Data.SQLite)
 
 ### License
 
