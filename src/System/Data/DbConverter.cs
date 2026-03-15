@@ -1,52 +1,51 @@
-﻿namespace System.Data
+﻿namespace System.Data;
+
+/// <summary>
+/// Represents an abstract base class for database converters that manage and apply updates
+/// to a database schema. This class provides the framework for version control, schema
+/// retrieval, update requirements, and applying updates.
+/// </summary>
+/// <typeparam name="TDbConnection">The type of the database connection.</typeparam>
+public abstract class DbConverter<TDbConnection> where TDbConnection : IDbConnection
 {
+    #region Properties
+
     /// <summary>
-    /// Represents an abstract base class for database converters that manage and apply updates
-    /// to a database schema. This class provides the framework for version control, schema
-    /// retrieval, update requirements, and applying updates.
+    /// Gets the version of the database schema that this converter is designed to update to.
     /// </summary>
-    /// <typeparam name="TDbConnection">The type of the database connection.</typeparam>
-    public abstract class DbConverter<TDbConnection> where TDbConnection : IDbConnection
+    public abstract Version Version { get; }
+
+    #endregion
+
+    #region Methods
+
+    /// <summary>
+    /// Retrieves the current version of the database schema from the specified database connection.
+    /// </summary>
+    /// <param name="connection">The database connection to use for retrieving the version.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the execution.</param>
+    /// <returns>The current version of the database schema.</returns>
+    public abstract Version GetDbVersion(TDbConnection connection, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Determines whether the database requires an update to match the version specified by this converter.
+    /// </summary>
+    /// <param name="connection">The database connection to check.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the execution.</param>
+    /// <returns><see langword="true"/> if the database requires an update; otherwise, <see langword="false"/>.</returns>
+    public virtual bool RequiresUpdate(TDbConnection connection, CancellationToken cancellationToken)
     {
-        #region Properties
-
-        /// <summary>
-        /// Gets the version of the database schema that this converter is designed to update to.
-        /// </summary>
-        public abstract Version Version { get; }
-
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Retrieves the current version of the database schema from the specified database connection.
-        /// </summary>
-        /// <param name="connection">The database connection to use for retrieving the version.</param>
-        /// <param name="cancellationToken">Cancellation token to cancel the execution.</param>
-        /// <returns>The current version of the database schema.</returns>
-        public abstract Version GetDbVersion(TDbConnection connection, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Determines whether the database requires an update to match the version specified by this converter.
-        /// </summary>
-        /// <param name="connection">The database connection to check.</param>
-        /// <param name="cancellationToken">Cancellation token to cancel the execution.</param>
-        /// <returns><see langword="true"/> if the database requires an update; otherwise, <see langword="false"/>.</returns>
-        public virtual bool RequiresUpdate(TDbConnection connection, CancellationToken cancellationToken)
-        {
-            Version dbVersion = GetDbVersion(connection, cancellationToken);
-            return dbVersion < Version;
-        }
-
-        /// <summary>
-        /// Applies the necessary updates to the database to bring it in line with the version specified by this converter.
-        /// </summary>
-        /// <param name="connection">The database connection to update.</param>
-        /// <param name="cancellationToken">Cancellation token to cancel the execution.</param>
-        /// <returns><see langword="true"/> if the update was successful; otherwise, <see langword="false"/>.</returns>
-        public abstract bool Update(TDbConnection connection, CancellationToken cancellationToken);
-
-        #endregion
+        Version dbVersion = GetDbVersion(connection, cancellationToken);
+        return dbVersion < Version;
     }
+
+    /// <summary>
+    /// Applies the necessary updates to the database to bring it in line with the version specified by this converter.
+    /// </summary>
+    /// <param name="connection">The database connection to update.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the execution.</param>
+    /// <returns><see langword="true"/> if the update was successful; otherwise, <see langword="false"/>.</returns>
+    public abstract bool Update(TDbConnection connection, CancellationToken cancellationToken);
+
+    #endregion
 }
