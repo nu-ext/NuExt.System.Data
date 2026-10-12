@@ -12,6 +12,11 @@ public interface IDbContext : IDisposable
     IDbConnection Connection { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the transaction can be committed or rolled back.
+    /// </summary>
+    bool IsActive { get; }
+
+    /// <summary>
     /// Commits all changes made in this context to the database.
     /// </summary>
     void Commit();

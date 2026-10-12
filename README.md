@@ -1,6 +1,6 @@
 # NuExt.System.Data
 
-`NuExt.System.Data` provides high-level data access utilities for .NET, including extensions for `DataReader`, `DataRow`, and `DataTable`, lightweight DAL infrastructure, database context abstractions, and a provider-independent migration framework.
+`NuExt.System.Data` provides a lightweight and extensible foundation for data access in .NET applications. It combines practical ADO.NET extensions, reusable DAL and database context abstractions, explicit transaction management, and provider-independent database migrations with validated history tracking.
 
 [![NuGet](https://img.shields.io/nuget/v/NuExt.System.Data.svg)](https://www.nuget.org/packages/NuExt.System.Data)
 [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-blue)](https://deepwiki.com/nu-ext/NuExt.System.Data)
@@ -8,24 +8,36 @@
 [![License](https://img.shields.io/github/license/nu-ext/NuExt.System.Data?label=license)](https://github.com/nu-ext/NuExt.System.Data/blob/main/LICENSE)
 [![Downloads](https://img.shields.io/nuget/dt/NuExt.System.Data.svg)](https://www.nuget.org/packages/NuExt.System.Data)
 
-### Features
+## Features
 
 - **ADO.NET Extensions**: Provides helpers for reading, converting, and manipulating data through `DataReader`, `DataRow`, and `DataTable`.
 - **DAL Infrastructure**: Includes lightweight base classes and database context abstractions for implementing data access layers.
 - **Database Migrations**: Provides provider-independent migration orchestration with ordered execution, validated migration history, optional version metadata, cancellation support, and provider-specific execution contexts.
 
-### Commonly Used Types
+## DAL Context Ownership
 
-- **`System.Data.DalBase<TDbContext>`**: Base class for Data Access Layer (DAL) implementations.
+The DAL infrastructure supports two execution models:
+
+- **Owned context**: When no database context is provided, the provider-specific executor creates and owns the context. It manages the connection, transaction, commit or rollback, and resource cleanup.
+- **Borrowed context**: When an existing database context is provided, the DAL participates in the caller's unit of work without committing, rolling back, or disposing the context.
+
+This allows individual DAL operations to run independently while also supporting coordinated operations across multiple DAL components within the same transaction.
+
+## Commonly Used Types
+
+- **`System.Data.DalBase<TDbContext>`**: Base class for DAL implementations that supports borrowed contexts and provider-managed owned context scopes.
 - **`System.Data.DataReaderExtensions`**: Provides extension methods for data reader operations.
 - **`System.Data.DataRowExtensions`**: Provides extension methods for data row operations.
 - **`System.Data.DataTableExtensions`**: Provides extension methods for data table operations.
 - **`System.Data.DbMigration<TContext>`**: Base class for defining ordered database schema and data migrations.
 - **`System.Data.DbMigrationContext`**: Base class for provider-specific migration execution contexts.
-- **`System.Data.DbMigrator<TContext>`**: Validates migration configuration and history, and applies pending migrations.
-- **`System.Data.IDbMigrationExecutor<TContext>`**: Defines provider-specific migration execution and 
+- **`System.Data.DbMigrator<TContext>`**: Validates migration configuration and applied history, and executes pending migrations.
+- **`System.Data.IDbContext`**: Defines transaction state and lifecycle operations for database contexts.
+- **`System.Data.IDbContextExecutor<TDbContext>`**: Defines provider-specific ownership and execution of database context scopes.
+- **`System.Data.IDbMigrationExecutor<TContext>`**: Defines provider-specific migration execution and transaction handling.
+- **`System.Data.IDbMigrationHistory<TContext>`**: Defines storage operations for applied migration history.
 
-### Installation
+## Installation
 
 Via [NuGet](https://www.nuget.org/):
 
@@ -39,7 +51,11 @@ Or via Visual Studio:
 2. Search for `NuExt.System.Data`.
 3. Click "Install".
 
-### Usage Examples
+### Compatibility
+
+**.NET Standard 2.0+, .NET 8/9/10 and .NET Framework 4.6.2+**
+
+## Usage Examples
 
 For a complete provider implementation and migration example, see:
 

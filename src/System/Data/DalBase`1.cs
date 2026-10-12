@@ -1,222 +1,101 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 
 namespace System.Data;
 
 /// <summary>
-/// Represents an abstract base class for Data Access Layer (DAL) operations,
-/// providing a framework for database context management and execution of database-related actions.
+/// Provides database context execution for Data Access Layer operations.
 /// </summary>
 /// <typeparam name="TDbContext">The type of the database context.</typeparam>
 public abstract class DalBase<TDbContext> : Disposable where TDbContext : IDbContext
 {
-    protected DalBase()
+    private readonly IDbContextExecutor<TDbContext> _executor;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DalBase{TDbContext}"/> class.
+    /// </summary>
+    /// <param name="executor">The database context executor.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="executor"/> is <see langword="null"/>.</exception>
+    protected DalBase(IDbContextExecutor<TDbContext> executor)
     {
+        _executor = executor ?? throw new ArgumentNullException(nameof(executor));
     }
-
-    #region Properties
-
-    /// <summary>
-    /// Gets the list of columns relevant to the specific implementation of the derived class.
-    /// This property should be overridden in derived classes to specify the columns of the database table that the class interacts with.
-    /// </summary>
-    protected abstract string[] Columns { get; }
-
-    /// <summary>
-    /// Gets the name of the table associated with the specific implementation of the derived class.
-    /// This property should be overridden in derived classes to specify the name of the database table that the class interacts with.
-    /// </summary>
-    protected abstract string TableName { get; }
-
-    #endregion
 
     #region Methods
 
     /// <summary>
-    /// Creates and initializes an instance of the database context.
+    /// Executes the specified action using an existing database context or an owned context created by the executor.
     /// </summary>
-    /// <returns>An instance of <typeparamref name="TDbContext"/>.</returns>
-    protected abstract TDbContext CreateDbContext();
-
-    /// <summary>
-    /// Attempts to create and assign a new instance of the database context if it is not already initialized.
-    /// </summary>
-    /// <param name="context">Reference to the database context.</param>
-    /// <returns><see langword="true"/> if a new context was created; otherwise, <see langword="false"/>.</returns>
-    protected bool TryCreateDbContext([NotNull] ref TDbContext? context)
-    {
-        if (context != null) return false;
-        context = CreateDbContext();
-        return true;
-    }
-
-    /// <summary>
-    /// Executes an action within a database context, ensuring that the context is managed (created, committed, or rolled back) accordingly.
-    /// </summary>
-    /// <param name="context">Optional existing context.</param>
-    /// <param name="action">The action to perform within the context.</param>
-    /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
-    /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    /// <exception cref="ArgumentNullException">
-    /// Thrown if <paramref name="action"/> is null.
-    /// </exception>
-    protected virtual ValueTask TryExecuteInDbContextAsync(TDbContext? context, Action<TDbContext> action, CancellationToken cancellationToken = default)
+    /// <param name="context">An optional existing database context.</param>
+    /// <param name="action">The action to execute.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="action"/> is <see langword="null"/>.</exception>
+    protected ValueTask ExecuteInDbContextAsync(TDbContext? context, Action<TDbContext> action, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(action);
         cancellationToken.ThrowIfCancellationRequested();
+        CheckDisposed();
 
-        bool contextTaken = TryCreateDbContext(ref context);
-        try
+        if (context is null)
         {
-            action(context);
-            if (contextTaken)
-            {
-                context.Commit();
-            }
-            return default;
+            return _executor.ExecuteAsync(action, cancellationToken);
         }
-        catch
-        {
-            if (contextTaken)
-            {
-                context.Rollback();
-            }
-            throw;
-        }
-        finally
-        {
-            if (contextTaken)
-            {
-                context.Dispose();
-            }
-        }
+
+        action(context);
+        return default;
     }
 
     /// <summary>
-    /// Asynchronously executes a function within a database context, ensuring that the context is managed (created, committed, or rolled back) accordingly.
+    /// Executes the specified asynchronous action using an existing database context or an owned context created by the executor.
     /// </summary>
-    /// <param name="context">Optional existing context.</param>
-    /// <param name="action">The asynchronous function to perform within the context.</param>
-    /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
-    /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    /// <exception cref="ArgumentNullException">
-    /// Thrown if <paramref name="action"/> is null.
-    /// </exception>
-    protected virtual async ValueTask TryExecuteInDbContextAsync(TDbContext? context, Func<TDbContext, ValueTask> action, CancellationToken cancellationToken = default)
+    /// <param name="context">An optional existing database context.</param>
+    /// <param name="action">The asynchronous action to execute.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="action"/> is <see langword="null"/>.</exception>
+    protected ValueTask ExecuteInDbContextAsync(TDbContext? context, Func<TDbContext, ValueTask> action, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(action);
         cancellationToken.ThrowIfCancellationRequested();
+        CheckDisposed();
 
-        bool contextTaken = TryCreateDbContext(ref context);
-        try
-        {
-            await action(context);
-            if (contextTaken)
-            {
-                context.Commit();
-            }
-        }
-        catch
-        {
-            if (contextTaken)
-            {
-                context.Rollback();
-            }
-            throw;
-        }
-        finally
-        {
-            if (contextTaken)
-            {
-                context.Dispose();
-            }
-        }
+        return context is null ? _executor.ExecuteAsync(action, cancellationToken) : action(context);
     }
 
     /// <summary>
-    /// Executes a function within a database context and returns a result, ensuring that the context is managed (created, committed, or rolled back) accordingly.
+    /// Executes the specified function using an existing database context or an owned context created by the executor.
     /// </summary>
-    /// <typeparam name="T">The type of the result produced by the function.</typeparam>
-    /// <param name="context">Optional existing context.</param>
-    /// <param name="func">The function to perform within the context.</param>
-    /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
-    /// <returns>A <see cref="ValueTask{T}"/> containing the result of the function.</returns>
-    /// <exception cref="ArgumentNullException">
-    /// Thrown if <paramref name="func"/> is null.
-    /// </exception>
-    protected virtual ValueTask<T> TryExecuteInDbContextAsync<T>(TDbContext? context, Func<TDbContext, T> func, CancellationToken cancellationToken = default)
+    /// <typeparam name="T">The type of the result.</typeparam>
+    /// <param name="context">An optional existing database context.</param>
+    /// <param name="func">The function to execute.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task containing the result of the operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="func"/> is <see langword="null"/>.</exception>
+    protected ValueTask<T> ExecuteInDbContextAsync<T>(TDbContext? context, Func<TDbContext, T> func, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(func);
         cancellationToken.ThrowIfCancellationRequested();
+        CheckDisposed();
 
-        bool contextTaken = TryCreateDbContext(ref context);
-        try
-        {
-            T result = func(context);
-            if (contextTaken)
-            {
-                context.Commit();
-            }
-            return new ValueTask<T>(result);
-        }
-        catch
-        {
-            if (contextTaken)
-            {
-                context.Rollback();
-            }
-            throw;
-        }
-        finally
-        {
-            if (contextTaken)
-            {
-                context.Dispose();
-            }
-        }
+        return context is null ? _executor.ExecuteAsync(func, cancellationToken) : new ValueTask<T>(func(context));
     }
 
     /// <summary>
-    /// Asynchronously executes a function within a database context and returns a result, ensuring that the context is managed (created, committed, or rolled back) accordingly.
+    /// Executes the specified asynchronous function using an existing database context or an owned context created by the executor.
     /// </summary>
-    /// <typeparam name="T">The type of the result produced by the function.</typeparam>
-    /// <param name="context">Optional existing context.</param>
-    /// <param name="func">The asynchronous function to perform within the context.</param>
-    /// <param name="cancellationToken">Token to monitor for cancellation requests.</param>
-    /// <returns>A <see cref="ValueTask{T}"/> containing the result of the asynchronous function.</returns>
-    /// <exception cref="ArgumentNullException">
-    /// Thrown if <paramref name="func"/> is null.
-    /// </exception>
-    protected virtual async ValueTask<T> TryExecuteInDbContextAsync<T>(TDbContext? context, Func<TDbContext, ValueTask<T>> func, CancellationToken cancellationToken = default)
+    /// <typeparam name="T">The type of the result.</typeparam>
+    /// <param name="context">An optional existing database context.</param>
+    /// <param name="func">The asynchronous function to execute.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task containing the result of the asynchronous operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="func"/> is <see langword="null"/>.</exception>
+    protected ValueTask<T> ExecuteInDbContextAsync<T>(TDbContext? context, Func<TDbContext, ValueTask<T>> func, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(func);
         cancellationToken.ThrowIfCancellationRequested();
+        CheckDisposed();
 
-        bool contextTaken = TryCreateDbContext(ref context);
-        try
-        {
-            T result = await func(context);
-            if (contextTaken)
-            {
-                context.Commit();
-            }
-            return result;
-        }
-        catch
-        {
-            if (contextTaken)
-            {
-                context.Rollback();
-            }
-            throw;
-        }
-        finally
-        {
-            if (contextTaken)
-            {
-                context.Dispose();
-            }
-        }
+        return context is null ? _executor.ExecuteAsync(func, cancellationToken) : func(context);
     }
 
     #endregion

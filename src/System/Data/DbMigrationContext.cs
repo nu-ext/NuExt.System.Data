@@ -19,6 +19,9 @@ public abstract class DbMigrationContext
     /// </summary>
     public CancellationToken CancellationToken { get; }
 
+    /// <summary>
+    /// Throws an <see cref="OperationCanceledException"/> if cancellation has been requested.
+    /// </summary>
     public void ThrowIfCancellationRequested()
     {
         CancellationToken.ThrowIfCancellationRequested();
