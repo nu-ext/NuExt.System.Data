@@ -63,6 +63,7 @@ public abstract class DalBase<TDbContext> : Disposable where TDbContext : IDbCon
     protected virtual ValueTask TryExecuteInDbContextAsync(TDbContext? context, Action<TDbContext> action, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
 
         bool contextTaken = TryCreateDbContext(ref context);
         try
@@ -104,6 +105,7 @@ public abstract class DalBase<TDbContext> : Disposable where TDbContext : IDbCon
     protected virtual async ValueTask TryExecuteInDbContextAsync(TDbContext? context, Func<TDbContext, ValueTask> action, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
 
         bool contextTaken = TryCreateDbContext(ref context);
         try
@@ -145,6 +147,7 @@ public abstract class DalBase<TDbContext> : Disposable where TDbContext : IDbCon
     protected virtual ValueTask<T> TryExecuteInDbContextAsync<T>(TDbContext? context, Func<TDbContext, T> func, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(func);
+        cancellationToken.ThrowIfCancellationRequested();
 
         bool contextTaken = TryCreateDbContext(ref context);
         try
@@ -187,6 +190,7 @@ public abstract class DalBase<TDbContext> : Disposable where TDbContext : IDbCon
     protected virtual async ValueTask<T> TryExecuteInDbContextAsync<T>(TDbContext? context, Func<TDbContext, ValueTask<T>> func, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(func);
+        cancellationToken.ThrowIfCancellationRequested();
 
         bool contextTaken = TryCreateDbContext(ref context);
         try

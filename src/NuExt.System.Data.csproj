@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.1;netstandard2.0;net10.0;net9.0;net8.0;net471;net462</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Description>High‑level data access utilities for .NET, providing extensions for DataReader, DataRow, and DataTable, plus lightweight DAL helpers, DbConverter, and IDbContext abstractions. Designed to simplify common database operations and improve consistency across data access layers.</Description>
+    <Description>High-level data access utilities for .NET, providing extensions for DataReader, DataRow, and DataTable, lightweight DAL and database context abstractions, and a provider-independent migration framework with ordered execution and validated history tracking.</Description>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;NETSDK1233</NoWarn>
