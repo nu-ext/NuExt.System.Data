@@ -7,11 +7,6 @@
 public interface IDbContext : IDisposable
 {
     /// <summary>
-    /// Gets the database connection associated with this context.
-    /// </summary>
-    IDbConnection Connection { get; }
-
-    /// <summary>
     /// Gets a value indicating whether the transaction can be committed or rolled back.
     /// </summary>
     bool IsActive { get; }

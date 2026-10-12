@@ -59,7 +59,7 @@ Or via Visual Studio:
 2. Search for `NuExt.System.Data`.
 3. Click "Install".
 
-### Compatibility
+## Compatibility
 
 **.NET Standard 2.0+, .NET 8/9/10 and .NET Framework 4.6.2+**
 
