@@ -1,15 +1,9 @@
-using System.Data;
+namespace System.Data.Tests;
 
-namespace NuExt.System.Data.Tests;
-
+[TestClass]
 public class ExtensionsTests
 {
-    [SetUp]
-    public void Setup()
-    {
-    }
-
-    [Test]
+    [TestMethod]
     public void Test1()
     {
         var table = new DataTable("Sample");
@@ -30,7 +24,7 @@ public class ExtensionsTests
                 table.Rows.Add(null, $"Name{i}", null, i, null, 0);
             }
         }
-        Assert.That(table.Rows, Has.Count.EqualTo(10));
+        Assert.HasCount(10, table.Rows);
         var listTable = new List<(long Id, string Name, string? Description, int Int32Value, int? Int32NullableValue, bool BoolValue)>();
         foreach (DataRow row in table.Rows)
         {
@@ -44,22 +38,17 @@ public class ExtensionsTests
             ));
         }
 
-        Assert.That(listTable, Has.Count.EqualTo(table.Rows.Count));
+        Assert.HasCount(table.Rows.Count, listTable);
         for (int i = 0; i < table.Rows.Count; i++)
         {
             var row = table.Rows[i];
             var (id, name, description, int32Value, int32NullableValue, boolValue) = listTable[i];
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(row["Id"], Is.EqualTo(id));
-                Assert.That(row["Name"], Is.EqualTo(name));
-                Assert.That(row["Description"], Is.EqualTo(description ?? (object)DBNull.Value));
-                Assert.That(row["Int32Value"], Is.EqualTo(int32Value));
-                Assert.That(row["Int32NullableValue"], Is.EqualTo(int32NullableValue ?? (object)DBNull.Value));
-                Assert.That(row["BoolValue"], Is.EqualTo(Convert.ToInt32(boolValue)));
-            }
+            Assert.AreEqual(id, row["Id"]);
+            Assert.AreEqual(name, row["Name"]);
+            Assert.AreEqual(description ?? (object)DBNull.Value, row["Description"]);
+            Assert.AreEqual(int32Value, row["Int32Value"]);
+            Assert.AreEqual(int32NullableValue ?? (object)DBNull.Value, row["Int32NullableValue"]);
+            Assert.AreEqual(Convert.ToInt32(boolValue), row["BoolValue"]);
         }
-
-        Assert.Pass();
     }
 }

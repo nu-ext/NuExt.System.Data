@@ -23,6 +23,14 @@ The DAL infrastructure supports two execution models:
 
 This allows individual DAL operations to run independently while also supporting coordinated operations across multiple DAL components within the same transaction.
 
+## Database Migration Model
+
+The migration framework is designed for application-integrated, forward-only database evolution. Migrations are registered explicitly in the order in which they must be applied, making the target schema deterministic and avoiding reflection-based discovery.
+
+Applied migrations are stored as an ordered history. Before applying pending migrations, the framework validates that the stored history is an exact prefix of the configured migration sequence. This detects removed, renamed, reordered, or unknown migrations before any schema changes are made.
+
+Transaction ownership is explicit and provider-controlled. A provider can execute the complete migration batch within its own transaction or participate in an existing database context, allowing migrations and application operations to share the same transaction.
+
 ## Commonly Used Types
 
 - **`System.Data.DalBase<TDbContext>`**: Base class for DAL implementations that supports borrowed contexts and provider-managed owned context scopes.
