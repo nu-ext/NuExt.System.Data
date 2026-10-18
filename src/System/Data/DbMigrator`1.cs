@@ -59,7 +59,7 @@ public sealed class DbMigrator<TContext> where TContext : DbMigrationContext
 
             migration.Up(context);
 
-            _history.Add(context, new AppliedDbMigration(migration.Id, DateTimeOffset.UtcNow, _version));
+            _history.Add(context, new AppliedDbMigration(i + 1, migration.Id, DateTimeOffset.UtcNow, _version));
         }
     }
 
@@ -95,11 +95,19 @@ public sealed class DbMigrator<TContext> where TContext : DbMigrationContext
         {
             var appliedMigration = appliedMigrations[i];
             var configuredMigration = _migrations[i];
+            var expectedSequence = i + 1;
+
+            if (appliedMigration.Sequence != expectedSequence)
+            {
+                throw new DbMigrationException(
+                    $"The applied migration '{appliedMigration.Id}' has sequence {appliedMigration.Sequence}, " +
+                    $"but sequence {expectedSequence} was expected.");
+            }
 
             if (!StringComparer.Ordinal.Equals(appliedMigration.Id, configuredMigration.Id))
             {
                 throw new DbMigrationException(
-                    $"The applied migration '{appliedMigration.Id}' at index {i} does not match " +
+                    $"The applied migration '{appliedMigration.Id}' at sequence {appliedMigration.Sequence} does not match " +
                     $"the configured migration '{configuredMigration.Id}'.");
             }
         }

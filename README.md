@@ -12,7 +12,7 @@
 
 - **ADO.NET Extensions**: Provides helpers for reading, converting, and manipulating data through `DataReader`, `DataRow`, and `DataTable`.
 - **DAL Infrastructure**: Includes lightweight base classes and database context abstractions for implementing data access layers.
-- **Database Migrations**: Provides provider-independent migration orchestration with ordered execution, validated migration history, optional version metadata, cancellation support, and provider-specific execution contexts.
+- **Database Migrations**: Provides provider-independent orchestration with ordered execution, sequence-aware history validation, optional version metadata, cancellation support, and provider-specific execution contexts.
 
 ## DAL Context Ownership
 
@@ -27,23 +27,26 @@ This allows individual DAL operations to run independently while also supporting
 
 The migration framework is designed for application-integrated, forward-only database evolution. Migrations are registered explicitly in the order in which they must be applied, making the target schema deterministic and avoiding reflection-based discovery.
 
-Applied migrations are stored as an ordered history. Before applying pending migrations, the framework validates that the stored history is an exact prefix of the configured migration sequence. This detects removed, renamed, reordered, or unknown migrations before any schema changes are made.
+Each applied migration is recorded with its one-based position in the configured migration sequence, stable identifier, application time, and optional version information. Before applying pending migrations, the framework validates that the stored history is an exact prefix of the configured sequence, including both sequence positions and migration identifiers. This detects removed, renamed, reordered, unknown, or incorrectly positioned migrations before any schema changes are made.
 
 Transaction ownership is explicit and provider-controlled. A provider can execute the complete migration batch within its own transaction or participate in an existing database context, allowing migrations and application operations to share the same transaction.
 
+Migration history storage is provider-defined. Providers may maintain a single history or isolate multiple independently validated migration sequences while reusing the same orchestration model.
+
 ## Commonly Used Types
 
-- **`System.Data.DalBase<TDbContext>`**: Base class for DAL implementations that supports borrowed contexts and provider-managed owned context scopes.
-- **`System.Data.DataReaderExtensions`**: Provides extension methods for data reader operations.
-- **`System.Data.DataRowExtensions`**: Provides extension methods for data row operations.
-- **`System.Data.DataTableExtensions`**: Provides extension methods for data table operations.
-- **`System.Data.DbMigration<TContext>`**: Base class for defining ordered database schema and data migrations.
-- **`System.Data.DbMigrationContext`**: Base class for provider-specific migration execution contexts.
-- **`System.Data.DbMigrator<TContext>`**: Validates migration configuration and applied history, and executes pending migrations.
-- **`System.Data.IDbContext`**: Defines transaction state and lifecycle operations for database contexts.
-- **`System.Data.IDbContextExecutor<TDbContext>`**: Defines provider-specific ownership and execution of database context scopes.
-- **`System.Data.IDbMigrationExecutor<TContext>`**: Defines provider-specific migration execution and transaction handling.
-- **`System.Data.IDbMigrationHistory<TContext>`**: Defines storage operations for applied migration history.
+- **`DalBase<TDbContext>`**: Base class for DAL implementations that supports borrowed contexts and provider-managed owned context scopes.
+- **`DataReaderExtensions`**: Provides extension methods for data reader operations.
+- **`DataRowExtensions`**: Provides extension methods for data row operations.
+- **`DataTableExtensions`**: Provides extension methods for data table operations.
+- **`IDbContext`**: Defines transaction state and lifecycle operations for database contexts.
+- **`IDbContextExecutor<TDbContext>`**: Defines provider-specific ownership and execution of database context scopes.
+- **`AppliedDbMigration`**: Represents an applied migration together with its sequence position, identifier, application time, and optional version information.
+- **`DbMigration<TContext>`**: Base class for defining ordered database schema and data migrations.
+- **`DbMigrationContext`**: Base class for provider-specific migration execution contexts.
+- **`DbMigrator<TContext>`**: Validates migration configuration and applied history, and executes pending migrations.
+- **`IDbMigrationExecutor<TContext>`**: Defines provider-specific migration execution and transaction handling.
+- **`IDbMigrationHistory<TContext>`**: Defines provider-specific storage operations for applied migration history.
 
 ## Installation
 
