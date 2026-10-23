@@ -1,6 +1,6 @@
 # NuExt.System.Data
 
-`NuExt.System.Data` provides a lightweight and extensible foundation for data access in .NET applications. It combines practical ADO.NET extensions, reusable DAL and database context abstractions, explicit transaction management, and provider-independent database migrations with validated history tracking.
+`NuExt.System.Data` is a **lightweight, provider-independent data access foundation for .NET applications and application frameworks**, combining practical ADO.NET extensions, explicit database context ownership, reusable DAL abstractions, and deterministic database migration orchestration.
 
 [![NuGet](https://img.shields.io/nuget/v/NuExt.System.Data.svg)](https://www.nuget.org/packages/NuExt.System.Data)
 [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-blue)](https://deepwiki.com/nu-ext/NuExt.System.Data)
@@ -8,51 +8,91 @@
 [![License](https://img.shields.io/github/license/nu-ext/NuExt.System.Data?label=license)](https://github.com/nu-ext/NuExt.System.Data/blob/main/LICENSE)
 [![Downloads](https://img.shields.io/nuget/dt/NuExt.System.Data.svg)](https://www.nuget.org/packages/NuExt.System.Data)
 
-## Features
+## Why NuExt.System.Data?
 
-- **ADO.NET Extensions**: Provides helpers for reading, converting, and manipulating data through `DataReader`, `DataRow`, and `DataTable`.
-- **DAL Infrastructure**: Includes lightweight base classes and database context abstractions for implementing data access layers.
-- **Database Migrations**: Provides provider-independent orchestration with ordered execution, sequence-aware history validation, optional version metadata, cancellation support, and provider-specific execution contexts.
+- **Provider-independent** — common DAL and migration contracts remain separate from provider-specific connections, transactions, and history storage
+- **Ownership-aware** — DAL operations explicitly distinguish owned contexts from caller-provided contexts
+- **Composable** — independent operations and larger transactional units of work use the same DAL implementation
+- **Migration-safe** — configured migrations and applied history are validated as one ordered sequence before pending changes run
+- **ADO.NET-focused** — typed reader, row, and table helpers without an ORM or tracking model
+- **Consistent across runtimes** — a stable API surface across modern .NET, .NET Standard, and .NET Framework
+- **Dependency-light** — no required ORM, hosting model, dependency injection container, or database provider
 
-## DAL Context Ownership
+## Designed for
+
+NuExt.System.Data is intended for application and framework authors who need:
+
+- a small reusable foundation above ADO.NET rather than a full ORM;
+- explicit ownership and transaction boundaries in data access code;
+- the same DAL methods for standalone operations and caller-controlled units of work;
+- deterministic migration orchestration with provider-specific execution;
+- strict validation of migration ordering and applied history;
+- compatibility across modern .NET and legacy .NET Framework targets.
+
+## Core infrastructure
+
+### ADO.NET extensions
+
+- `DataReaderExtensions` adds name-based typed accessors and nullable getters for older targets.
+- `DataRowExtensions` provides typed and nullable conversions by index, name, `DataColumn`, or `DataRowVersion`.
+- `DataTableExtensions` provides focused table operations without object tracking.
+- Compatibility implementations resolve column names to ordinals and preserve provider behavior.
+
+### DAL and database contexts
+
+- `IDbContext` defines the lifetime contract for provider-specific database contexts.
+- `IDbContextExecutor<TDbContext>` creates and executes owned context scopes while also supporting operations over existing contexts.
+- `DalBase<TDbContext>` centralizes DAL execution and exposes the same synchronous and asynchronous operation model for owned and borrowed contexts.
+- `DbContextExtensions` adds focused helpers around context execution without hiding ownership boundaries.
+
+### Explicit context ownership
 
 The DAL infrastructure supports two execution models:
 
-- **Owned context**: When no database context is provided, the provider-specific executor creates and owns the context. It manages the connection, transaction, commit or rollback, and resource cleanup.
-- **Borrowed context**: When an existing database context is provided, the DAL participates in the caller's unit of work without committing, rolling back, or disposing the context.
+- **Owned context** — when no context is supplied, the provider-specific executor creates and owns the context, including connection lifetime, transaction completion, and cleanup.
+- **Borrowed context** — when an existing context is supplied, the DAL participates in the caller's unit of work without committing, rolling back, or disposing that context.
 
-This allows individual DAL operations to run independently while also supporting coordinated operations across multiple DAL components within the same transaction.
+This design allows a DAL operation to run independently or compose with other operations inside one caller-controlled transaction without duplicating data access logic.
 
-## Database Migration Model
+### Deterministic database migrations
 
-The migration framework is designed for application-integrated, forward-only database evolution. Migrations are registered explicitly in the order in which they must be applied, making the target schema deterministic and avoiding reflection-based discovery.
+Migration orchestration is provider-independent; transaction handling and history persistence are provider-specific.
 
-Each applied migration is recorded with its one-based position in the configured migration sequence, stable identifier, application time, and optional version information. Before applying pending migrations, the framework validates that the stored history is an exact prefix of the configured sequence, including both sequence positions and migration identifiers. This detects removed, renamed, reordered, unknown, or incorrectly positioned migrations before any schema changes are made.
+- `DbMigration<TContext>` represents an ordered schema or data change with a stable identifier.
+- `DbMigrationContext` carries cancellation and provides a base for provider-specific state.
+- `DbMigrator<TContext>` validates migration configuration and history before applying pending migrations.
+- `IDbMigrationExecutor<TContext>` defines the provider-specific execution and transaction boundary.
+- `IDbMigrationHistory<TContext>` defines migration history storage.
+- `AppliedDbMigration` records the sequence, identifier, UTC application time, and optional version.
 
-Transaction ownership is explicit and provider-controlled. A provider can execute the complete migration batch within its own transaction or participate in an existing database context, allowing migrations and application operations to share the same transaction.
+Before executing pending migrations, the migrator verifies that:
 
-Migration history storage is provider-defined. Providers may maintain a single history or isolate multiple independently validated migration sequences while reusing the same orchestration model.
+- configured migration identifiers are non-empty and unique;
+- applied history does not contain more entries than the current configuration;
+- applied sequence numbers are contiguous and one-based;
+- every applied identifier matches the configured migration at the same position.
 
-## Commonly Used Types
+This treats migration history as a strict prefix of the configured migration sequence and prevents silently continuing from reordered, removed, duplicated, or otherwise inconsistent migrations.
 
-- **`DalBase<TDbContext>`**: Base class for DAL implementations that supports borrowed contexts and provider-managed owned context scopes.
-- **`DataReaderExtensions`**: Provides extension methods for data reader operations.
-- **`DataRowExtensions`**: Provides extension methods for data row operations.
-- **`DataTableExtensions`**: Provides extension methods for data table operations.
-- **`IDbContext`**: Defines transaction state and lifecycle operations for database contexts.
-- **`IDbContextExecutor<TDbContext>`**: Defines provider-specific ownership and execution of database context scopes.
-- **`AppliedDbMigration`**: Represents an applied migration together with its sequence position, identifier, application time, and optional version information.
-- **`DbMigration<TContext>`**: Base class for defining ordered database schema and data migrations.
-- **`DbMigrationContext`**: Base class for provider-specific migration execution contexts.
-- **`DbMigrator<TContext>`**: Validates migration configuration and applied history, and executes pending migrations.
-- **`IDbMigrationExecutor<TContext>`**: Defines provider-specific migration execution and transaction handling.
-- **`IDbMigrationHistory<TContext>`**: Defines provider-specific storage operations for applied migration history.
+### Cancellation and transaction boundaries
+
+- Cancellation is checked before execution and before each pending migration.
+- The migration context passes the cancellation token to provider code and migrations.
+- A migration is recorded only after its `Up` operation completes successfully.
+- `IDbMigrationExecutor<TContext>` controls transactions and keeps migration history consistent.
+
+## Compatibility
+
+- **.NET Standard 2.0+, .NET 8/9/10, and .NET Framework 4.6.2+**
+- Works with provider-specific implementations built on ADO.NET
+- Includes selected ADO.NET API backports for older targets
+- Does not require Entity Framework or another ORM
 
 ## Installation
 
 Via [NuGet](https://www.nuget.org/):
 
-```sh
+```shell
 dotnet add package NuExt.System.Data
 ```
 
@@ -62,25 +102,21 @@ Or via Visual Studio:
 2. Search for `NuExt.System.Data`.
 3. Click "Install".
 
-## Compatibility
+## Provider implementation
 
-**.NET Standard 2.0+, .NET 8/9/10 and .NET Framework 4.6.2+**
-
-## Usage Examples
-
-For a complete provider implementation and migration example, see:
+For a complete provider implementation, transaction strategy, migration history store, and usage example, see:
 
 - [NuExt.System.Data.SQLite](https://github.com/nu-ext/NuExt.System.Data.SQLite)
 
 ## Ecosystem
 
+- [NuExt.System](https://github.com/nu-ext/NuExt.System)
+- [NuExt.System.Data.SQLite](https://github.com/nu-ext/NuExt.System.Data.SQLite)
 - [NuExt.Minimal.Mvvm](https://github.com/nu-ext/NuExt.Minimal.Mvvm)
 - [NuExt.Minimal.Mvvm.SourceGenerator](https://github.com/nu-ext/NuExt.Minimal.Mvvm.SourceGenerator)
 - [NuExt.Minimal.Behaviors.Wpf](https://github.com/nu-ext/NuExt.Minimal.Behaviors.Wpf)
 - [NuExt.Minimal.Mvvm.Wpf](https://github.com/nu-ext/NuExt.Minimal.Mvvm.Wpf)
 - [NuExt.Minimal.Mvvm.MahApps.Metro](https://github.com/nu-ext/NuExt.Minimal.Mvvm.MahApps.Metro)
-- [NuExt.System](https://github.com/nu-ext/NuExt.System)
-- [NuExt.System.Data.SQLite](https://github.com/nu-ext/NuExt.System.Data.SQLite)
 
 ## Contributing
 

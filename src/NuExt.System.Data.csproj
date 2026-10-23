@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.1;netstandard2.0;net10.0;net9.0;net8.0;net471;net462</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Description>High-level data access utilities for .NET, providing extensions for DataReader, DataRow, and DataTable, lightweight DAL and database context abstractions, and a provider-independent migration framework with ordered execution and validated history tracking.</Description>
+    <Description>Lightweight, provider-independent data access foundation for .NET, providing ADO.NET extensions for DataReader, DataRow, and DataTable, reusable DAL and database context abstractions, and deterministic database migrations with ordered execution and validated history tracking.</Description>
     <RootNamespace />
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;NETSDK1233</NoWarn>
@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(NuExt_UseLocalProjects)' != 'true'">
-    <PackageReference Include="NuExt.System" Version="0.7.8" />
+    <PackageReference Include="NuExt.System" Version="0.8.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(NuExt_UseLocalProjects)' == 'true'">

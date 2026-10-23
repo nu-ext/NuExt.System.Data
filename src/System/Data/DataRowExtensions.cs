@@ -14,12 +14,7 @@ public static partial class DataRowExtensions
         {
             return b;
         }
-        Debug.Assert(obj is long || obj is int);
-        /*int result;
-        if (int.TryParse(Convert.ToString(obj), out result))
-        {
-            return result != 0;
-        }*/
+
         return Convert.ToBoolean(obj);
     }
 
@@ -32,12 +27,7 @@ public static partial class DataRowExtensions
         {
             return b;
         }
-        Debug.Assert(obj is long || obj is int);
-        /*int result;
-        if (int.TryParse(Convert.ToString(obj), out result))
-        {
-            return result != 0;
-        }*/
+
         return Convert.ToBoolean(obj);
     }
 
@@ -50,12 +40,7 @@ public static partial class DataRowExtensions
         {
             return b;
         }
-        Debug.Assert(obj is long || obj is int);
-        /*int result;
-        if (int.TryParse(Convert.ToString(obj), out result))
-        {
-            return result != 0;
-        }*/
+
         return Convert.ToBoolean(obj);
     }
 
@@ -68,12 +53,7 @@ public static partial class DataRowExtensions
         {
             return b;
         }
-        Debug.Assert(obj is long || obj is int);
-        /*int result;
-        if (int.TryParse(Convert.ToString(obj), out result))
-        {
-            return result != 0;
-        }*/
+
         return Convert.ToBoolean(obj);
     }
 
@@ -290,11 +270,7 @@ public static partial class DataRowExtensions
         ArgumentNullException.ThrowIfNull(dataRow);
 
         object obj = dataRow[columnIndex];
-        if (obj is Guid g)
-        {
-            return g;
-        }
-        return Guid.Parse(Convert.ToString(obj)!);//TODO
+        return ConvertToGuid(obj);
     }
 
     public static Guid GetGuid(this DataRow dataRow, string columnName)
@@ -302,11 +278,7 @@ public static partial class DataRowExtensions
         ArgumentNullException.ThrowIfNull(dataRow);
 
         object obj = dataRow[columnName];
-        if (obj is Guid g)
-        {
-            return g;
-        }
-        return Guid.Parse(Convert.ToString(obj)!);//TODO
+        return ConvertToGuid(obj);
     }
 
     public static Guid GetGuid(this DataRow dataRow, DataColumn column)
@@ -314,11 +286,7 @@ public static partial class DataRowExtensions
         ArgumentNullException.ThrowIfNull(dataRow);
 
         object obj = dataRow[column];
-        if (obj is Guid g)
-        {
-            return g;
-        }
-        return Guid.Parse(Convert.ToString(obj)!);//TODO
+        return ConvertToGuid(obj);
     }
 
     public static Guid GetGuid(this DataRow dataRow, DataColumn column, DataRowVersion version)
@@ -326,13 +294,18 @@ public static partial class DataRowExtensions
         ArgumentNullException.ThrowIfNull(dataRow);
 
         object obj = dataRow[column, version];
-        if (obj is Guid g)
-        {
-            return g;
-        }
-        return Guid.Parse(Convert.ToString(obj)!);//TODO
+        return ConvertToGuid(obj);
     }
 
+    private static Guid ConvertToGuid(object value)
+    {
+        return value switch
+        {
+            Guid guid => guid,
+            string text => Guid.Parse(text),
+            _ => throw new InvalidCastException($"Cannot convert a value of type '{value.GetType()}' to '{typeof(Guid)}'.")
+        };
+    }
     public static short GetInt16(this DataRow dataRow, int columnIndex)
     {
         ArgumentNullException.ThrowIfNull(dataRow);

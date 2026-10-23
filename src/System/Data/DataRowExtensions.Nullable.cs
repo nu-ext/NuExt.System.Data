@@ -17,12 +17,6 @@ partial class DataRowExtensions
         {
             return b;
         }
-        Debug.Assert(obj is long);
-        /*int result;
-        if (int.TryParse(Convert.ToString(obj), out result))
-        {
-            return result != 0;
-        }*/
         return Convert.ToBoolean(obj);
     }
 
@@ -39,12 +33,6 @@ partial class DataRowExtensions
         {
             return b;
         }
-        Debug.Assert(obj is long);
-        /*int result;
-        if (int.TryParse(Convert.ToString(obj), out result))
-        {
-            return result != 0;
-        }*/
         return Convert.ToBoolean(obj);
     }
 
@@ -61,12 +49,6 @@ partial class DataRowExtensions
         {
             return b;
         }
-        Debug.Assert(obj is long);
-        /*int result;
-        if (int.TryParse(Convert.ToString(obj), out result))
-        {
-            return result != 0;
-        }*/
         return Convert.ToBoolean(obj);
     }
 
@@ -83,12 +65,6 @@ partial class DataRowExtensions
         {
             return b;
         }
-        Debug.Assert(obj is long);
-        /*int result;
-        if (int.TryParse(Convert.ToString(obj), out result))
-        {
-            return result != 0;
-        }*/
         return Convert.ToBoolean(obj);
     }
 
@@ -405,11 +381,7 @@ partial class DataRowExtensions
             return null;
         }
         object obj = dataRow[columnIndex];
-        if (obj is Guid g)
-        {
-            return g;
-        }
-        return Guid.Parse(Convert.ToString(obj)!);//TODO
+        return ConvertToGuid(obj);
     }
 
     public static Guid? GetNullableGuid(this DataRow dataRow, string columnName)
@@ -421,11 +393,7 @@ partial class DataRowExtensions
             return null;
         }
         object obj = dataRow[columnName];
-        if (obj is Guid g)
-        {
-            return g;
-        }
-        return Guid.Parse(Convert.ToString(obj)!);//TODO
+        return ConvertToGuid(obj);
     }
 
     public static Guid? GetNullableGuid(this DataRow dataRow, DataColumn column)
@@ -437,11 +405,7 @@ partial class DataRowExtensions
             return null;
         }
         object obj = dataRow[column];
-        if (obj is Guid g)
-        {
-            return g;
-        }
-        return Guid.Parse(Convert.ToString(obj)!);//TODO
+        return ConvertToGuid(obj);
     }
 
     public static Guid? GetNullableGuid(this DataRow dataRow, DataColumn column, DataRowVersion version)
@@ -453,11 +417,7 @@ partial class DataRowExtensions
             return null;
         }
         object obj = dataRow[column, version];
-        if (obj is Guid g)
-        {
-            return g;
-        }
-        return Guid.Parse(Convert.ToString(obj)!);//TODO
+        return ConvertToGuid(obj);
     }
 
     public static short? GetNullableInt16(this DataRow dataRow, int columnIndex)
