@@ -39,4 +39,46 @@ public interface IDbContextExecutor<TDbContext> where TDbContext : IDbContext
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task that contains the result of the asynchronous operation.</returns>
     ValueTask<T> ExecuteAsync<T>(Func<TDbContext, ValueTask<T>> func, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes the specified action with the provided state within an owned database context.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state passed to the action.</typeparam>
+    /// <param name="action">The action to execute.</param>
+    /// <param name="state">The state to pass to the action.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the operation.</returns>
+    ValueTask ExecuteAsync<TState>(Action<TDbContext, TState> action, TState state, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes the specified asynchronous action with the provided state within an owned database context.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state passed to the action.</typeparam>
+    /// <param name="action">The asynchronous action to execute.</param>
+    /// <param name="state">The state to pass to the action.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    ValueTask ExecuteAsync<TState>(Func<TDbContext, TState, ValueTask> action, TState state, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes the specified function with the provided state within an owned database context.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state passed to the function.</typeparam>
+    /// <typeparam name="T">The type of the result.</typeparam>
+    /// <param name="func">The function to execute.</param>
+    /// <param name="state">The state to pass to the function.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that contains the result of the operation.</returns>
+    ValueTask<T> ExecuteAsync<TState, T>(Func<TDbContext, TState, T> func, TState state, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes the specified asynchronous function with the provided state within an owned database context.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state passed to the function.</typeparam>
+    /// <typeparam name="T">The type of the result.</typeparam>
+    /// <param name="func">The asynchronous function to execute.</param>
+    /// <param name="state">The state to pass to the function.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that contains the result of the asynchronous operation.</returns>
+    ValueTask<T> ExecuteAsync<TState, T>(Func<TDbContext, TState, ValueTask<T>> func, TState state, CancellationToken cancellationToken = default);
 }

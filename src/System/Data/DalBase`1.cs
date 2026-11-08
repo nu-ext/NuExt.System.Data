@@ -98,5 +98,89 @@ public abstract class DalBase<TDbContext> : Disposable where TDbContext : IDbCon
         return context is null ? _executor.ExecuteAsync(func, cancellationToken) : func(context);
     }
 
+    /// <summary>
+    /// Executes the specified action with the provided state using an existing database context or an owned context created by the executor.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state passed to the action.</typeparam>
+    /// <param name="context">An optional existing database context.</param>
+    /// <param name="action">The action to execute.</param>
+    /// <param name="state">The state to pass to the action.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="action"/> is <see langword="null"/>.</exception>
+    protected ValueTask ExecuteInDbContextAsync<TState>(TDbContext? context, Action<TDbContext, TState> action, TState state, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
+        CheckDisposed();
+
+        if (context is null)
+        {
+            return _executor.ExecuteAsync(action, state, cancellationToken);
+        }
+
+        action(context, state);
+        return default;
+    }
+
+    /// <summary>
+    /// Executes the specified asynchronous action with the provided state using an existing database context or an owned context created by the executor.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state passed to the action.</typeparam>
+    /// <param name="context">An optional existing database context.</param>
+    /// <param name="action">The asynchronous action to execute.</param>
+    /// <param name="state">The state to pass to the action.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="action"/> is <see langword="null"/>.</exception>
+    protected ValueTask ExecuteInDbContextAsync<TState>(TDbContext? context, Func<TDbContext, TState, ValueTask> action, TState state, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
+        CheckDisposed();
+
+        return context is null ? _executor.ExecuteAsync(action, state, cancellationToken) : action(context, state);
+    }
+
+    /// <summary>
+    /// Executes the specified function with the provided state using an existing database context or an owned context created by the executor.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state passed to the function.</typeparam>
+    /// <typeparam name="T">The type of the result.</typeparam>
+    /// <param name="context">An optional existing database context.</param>
+    /// <param name="func">The function to execute.</param>
+    /// <param name="state">The state to pass to the function.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task containing the result of the operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="func"/> is <see langword="null"/>.</exception>
+    protected ValueTask<T> ExecuteInDbContextAsync<TState, T>(TDbContext? context, Func<TDbContext, TState, T> func, TState state, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(func);
+        cancellationToken.ThrowIfCancellationRequested();
+        CheckDisposed();
+
+        return context is null ? _executor.ExecuteAsync(func, state, cancellationToken) : new ValueTask<T>(func(context, state));
+    }
+
+    /// <summary>
+    /// Executes the specified asynchronous function with the provided state using an existing database context or an owned context created by the executor.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state passed to the function.</typeparam>
+    /// <typeparam name="T">The type of the result.</typeparam>
+    /// <param name="context">An optional existing database context.</param>
+    /// <param name="func">The asynchronous function to execute.</param>
+    /// <param name="state">The state to pass to the function.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task containing the result of the asynchronous operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="func"/> is <see langword="null"/>.</exception>
+    protected ValueTask<T> ExecuteInDbContextAsync<TState, T>(TDbContext? context, Func<TDbContext, TState, ValueTask<T>> func, TState state, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(func);
+        cancellationToken.ThrowIfCancellationRequested();
+        CheckDisposed();
+
+        return context is null ? _executor.ExecuteAsync(func, state, cancellationToken) : func(context, state);
+    }
+
     #endregion
 }
