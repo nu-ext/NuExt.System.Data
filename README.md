@@ -83,7 +83,7 @@ This treats migration history as a strict prefix of the configured migration seq
 
 ## Compatibility
 
-- **.NET Standard 2.0+, .NET 8/9/10, and .NET Framework 4.6.2+**
+- **.NET Standard 2.0+, .NET 8/9/10/11, and .NET Framework 4.6.2+**
 - Works with provider-specific implementations built on ADO.NET
 - Includes selected ADO.NET API backports for older targets
 - Does not require Entity Framework or another ORM
