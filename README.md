@@ -10,13 +10,13 @@
 
 ## Why NuExt.System.Data?
 
-- **Provider-independent** — common DAL and migration contracts remain separate from provider-specific connections, transactions, and history storage
-- **Ownership-aware** — DAL operations explicitly distinguish owned contexts from caller-provided contexts
-- **Composable** — independent operations and larger transactional units of work use the same DAL implementation
-- **Migration-safe** — configured migrations and applied history are validated as one ordered sequence before pending changes run
-- **ADO.NET-focused** — typed reader, row, and table helpers without an ORM or tracking model
-- **Consistent across runtimes** — a stable API surface across modern .NET, .NET Standard, and .NET Framework
-- **Dependency-light** — no required ORM, hosting model, dependency injection container, or database provider
+- **Provider-independent** â€” common DAL and migration contracts remain separate from provider-specific connections, transactions, and history storage
+- **Ownership-aware** â€” DAL operations explicitly distinguish owned contexts from caller-provided contexts
+- **Composable** â€” independent operations and larger transactional units of work use the same DAL implementation
+- **Migration-safe** â€” configured migrations and applied history are validated as one ordered sequence before pending changes run
+- **ADO.NET-focused** â€” typed reader, row, and table helpers without an ORM or tracking model
+- **Consistent across runtimes** â€” a stable API surface across modern .NET, .NET Standard, and .NET Framework
+- **Dependency-light** â€” no required ORM, hosting model, dependency injection container, or database provider
 
 ## Designed for
 
@@ -49,8 +49,8 @@ NuExt.System.Data is intended for application and framework authors who need:
 
 The DAL infrastructure supports two execution models:
 
-- **Owned context** — when no context is supplied, the provider-specific executor creates and owns the context, including connection lifetime, transaction completion, and cleanup.
-- **Borrowed context** — when an existing context is supplied, the DAL participates in the caller's unit of work without committing, rolling back, or disposing that context.
+- **Owned context** â€” when no context is supplied, the provider-specific executor creates and owns the context, including connection lifetime, transaction completion, and cleanup.
+- **Borrowed context** â€” when an existing context is supplied, the DAL participates in the caller's unit of work without committing, rolling back, or disposing that context.
 
 This design allows a DAL operation to run independently or compose with other operations inside one caller-controlled transaction without duplicating data access logic.
 
@@ -119,6 +119,8 @@ For a complete provider implementation, transaction strategy, migration history 
 - [NuExt.Minimal.Mvvm.Wpf](https://github.com/nu-ext/NuExt.Minimal.Mvvm.Wpf)
 - [NuExt.Minimal.Mvvm.AvalonDock](https://github.com/nu-ext/NuExt.Minimal.Mvvm.AvalonDock)
 - [NuExt.Minimal.Mvvm.MahApps.Metro](https://github.com/nu-ext/NuExt.Minimal.Mvvm.MahApps.Metro)
+- [NuExt.Minimal.Mvvm.Desktop](https://github.com/nu-ext/NuExt.Minimal.Mvvm.Desktop)
+- [NuExt.Minimal.Mvvm.Desktop.Persistence](https://github.com/nu-ext/NuExt.Minimal.Mvvm.Desktop.Persistence)
 
 ## Contributing
 
